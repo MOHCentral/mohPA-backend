@@ -60,6 +60,18 @@ export class StatsRepository {
     return this.mapStats(result.rows[0]);
   }
 
+  public async getStatsBatch(personaIds: string[]): Promise<Map<string, PersonaStats>> {
+    if (personaIds.length === 0) return new Map();
+    const sql = 'SELECT * FROM persona_stats WHERE persona_id = ANY($1)';
+    const result = await this.db.query(sql, [personaIds]);
+    const map = new Map<string, PersonaStats>();
+    for (const row of result.rows) {
+      const stats = this.mapStats(row);
+      map.set(stats.personaId, stats);
+    }
+    return map;
+  }
+
   public async upsertStats(stats: Partial<PersonaStats> & { personaId: string }): Promise<PersonaStats> {
     const sql = `
       INSERT INTO persona_stats (

@@ -489,6 +489,21 @@ export class MemoryDbClient implements DbClient {
   }
 
   private evaluateSimpleCondition(cond: string, row: Record<string, any>, params: any[]): boolean {
+    const anyMatch = cond.match(/(?:LOWER\()?\s*([a-zA-Z0-9_\.]+)\s*\)?\s*=\s*ANY\s*\(\s*(.*?)\s*\)/i);
+    if (anyMatch) {
+      const col = anyMatch[1].split('.').pop()!.toLowerCase();
+      let rawVal = anyMatch[2].trim();
+      let targetArr: any[] = [];
+      if (rawVal.startsWith('$')) {
+        const idx = parseInt(rawVal.replace(/[^\d]/g, ''), 10) - 1;
+        targetArr = params[idx];
+      }
+      if (Array.isArray(targetArr)) {
+        return targetArr.includes(row[col]);
+      }
+      return false;
+    }
+
     const match = cond.match(/(?:LOWER\()?\s*([a-zA-Z0-9_\.]+)\s*\)?\s*(=|!=|<>|IS|ILIKE|LIKE|<|>|<=|>=)\s*(.*)/i);
     if (!match) return true;
 
