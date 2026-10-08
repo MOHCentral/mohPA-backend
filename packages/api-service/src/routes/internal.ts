@@ -79,15 +79,15 @@ export const internalRoutes: FastifyPluginAsync = async (fastify) => {
       }
     }
 
-    const enriched = await Promise.all(
-      personas.map(async (p) => {
-        const stats = await fastify.statsRepo.getStats(p.id);
-        return {
-          ...p,
-          stats: stats || { score: 0, kills: 0, deaths: 0, wins: 0, losses: 0, timePlayedSeconds: 0 }
-        };
-      })
-    );
+    const personaIds = personas.map(p => p.id);
+    const statsMap = await fastify.statsRepo.getStatsBatch(personaIds);
+    const enriched = personas.map((p) => {
+      const stats = statsMap.get(p.id);
+      return {
+        ...p,
+        stats: stats || { score: 0, kills: 0, deaths: 0, wins: 0, losses: 0, timePlayedSeconds: 0 }
+      };
+    });
 
     return reply.send({ personas: enriched });
   });
