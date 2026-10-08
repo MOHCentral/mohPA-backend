@@ -309,9 +309,15 @@ export async function queryGameServer(options: GameQueryOptions): Promise<Server
 
   // Probe all candidate ports concurrently
   try {
-    const probePromises = candidatePorts.map((port) => probePort(host, port, timeoutMs));
-    const results = await Promise.all(probePromises);
-    const successful = results.find((r) => r !== null);
+    // Wrap probePort to reject on null so Promise.any can short-circuit on the first success
+    const probePromises = candidatePorts.map((port) =>
+      probePort(host, port, timeoutMs).then((res) => {
+        if (res === null) throw new Error(`Port ${port} failed or timed out`);
+        return res;
+      })
+    );
+    // Catch AggregateError when all ports fail and return undefined to match original logic
+    const successful = await Promise.any(probePromises).catch(() => undefined);
 
     if (successful) {
       return {
