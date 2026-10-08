@@ -66,8 +66,17 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
   });
 
   const dbClient = options.db || (await getDbClient());
-  const jwtSecret = options.jwtSecret || process.env.JWT_SECRET || 'super-secret-mohpa-jwt-key-change-in-production';
-  const internalApiKey = options.internalApiKey || process.env.INTERNAL_API_KEY || 'mohpa-internal-secret-token';
+  const isTest = process.env.NODE_ENV === 'test';
+
+  const jwtSecret = options.jwtSecret || process.env.JWT_SECRET || (isTest ? 'test-jwt-secret' : undefined);
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET must be set in environment variables');
+  }
+
+  const internalApiKey = options.internalApiKey || process.env.INTERNAL_API_KEY || (isTest ? 'test-internal-api-key' : undefined);
+  if (!internalApiKey) {
+    throw new Error('INTERNAL_API_KEY must be set in environment variables');
+  }
   const turnstileSecret =
     options.turnstileSecret !== undefined
       ? options.turnstileSecret

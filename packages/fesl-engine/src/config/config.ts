@@ -57,7 +57,7 @@ export const config: FeslEngineConfig = {
   defaultDomainPartition: process.env.DEFAULT_DOMAIN_PARTITION || 'mohpa',
   redisUrl: process.env.REDIS_URL || 'redis://127.0.0.1:6379',
   apiServiceUrl: process.env.API_SERVICE_URL || 'http://127.0.0.1:3000',
-  internalApiKey: process.env.INTERNAL_API_KEY || 'mohpa-internal-secret-token',
+  internalApiKey: process.env.INTERNAL_API_KEY || (process.env.NODE_ENV === 'test' ? 'test-internal-api-key' : (() => { throw new Error('INTERNAL_API_KEY must be set in environment variables'); })()),
   tlsCertPath: process.env.TLS_CERT_PATH,
   tlsKeyPath: process.env.TLS_KEY_PATH,
 };
