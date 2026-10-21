@@ -45,13 +45,7 @@ export const statsRoutes: FastifyPluginAsync = async (fastify) => {
     } else {
       // Find across configured games
       const allGames = listGameConfigs().map((g) => g.slug);
-      for (const g of allGames) {
-        const found = await fastify.personaRepo.findByNameAndGame(name, g);
-        if (found) {
-          persona = found;
-          break;
-        }
-      }
+      persona = await fastify.personaRepo.findByNameAndAnyGame(name, allGames);
     }
 
     // Fallback: If not found in personas, check if registered user exists by username

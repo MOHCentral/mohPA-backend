@@ -48,6 +48,13 @@ export class PersonaRepository {
     return this.mapPersona(result.rows[0]);
   }
 
+  public async findByNameAndAnyGame(name: string, gameSlugs: string[]): Promise<Persona | null> {
+    const sql = 'SELECT * FROM personas WHERE LOWER(name) = LOWER($1) AND game_slug = ANY($2) LIMIT 1';
+    const result = await this.db.query(sql, [name, gameSlugs.map(s => s.toLowerCase())]);
+    if (result.rows.length === 0) return null;
+    return this.mapPersona(result.rows[0]);
+  }
+
   public async findByGsProfileId(gsProfileId: number): Promise<Persona | null> {
     const sql = 'SELECT * FROM personas WHERE gs_profile_id = $1 LIMIT 1';
     const result = await this.db.query(sql, [gsProfileId]);

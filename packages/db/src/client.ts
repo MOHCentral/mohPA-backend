@@ -497,6 +497,9 @@ export class MemoryDbClient implements DbClient {
       if (rawVal.startsWith('$')) {
         const idx = parseInt(rawVal.replace(/[^\d]/g, ''), 10) - 1;
         targetArr = params[idx];
+      } else {
+        // Fallback array parsing (simple comma separated, no quotes)
+        targetArr = rawVal.split(',').map(s => s.trim().replace(/^'|'$/g, ''));
       }
       if (Array.isArray(targetArr)) {
         return targetArr.includes(row[col]);
