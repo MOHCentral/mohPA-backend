@@ -154,11 +154,12 @@ export async function buildStatsReport(
   lookup: (name: string) => Promise<string | null>
 ): Promise<StatsReportBody> {
   const snapshot = parseSnapshot(gamedata);
-  const players: SnapshotPlayer[] = [];
-  for (const player of snapshot.players) {
-    const personaId = player.name ? await lookup(player.name) : null;
-    players.push({ ...player, personaId: personaId || undefined });
-  }
+  const players: SnapshotPlayer[] = await Promise.all(
+    snapshot.players.map(async (player) => {
+      const personaId = player.name ? await lookup(player.name) : null;
+      return { ...player, personaId: personaId || undefined };
+    })
+  );
 
   return {
     statsMatchKey: `mohpa:${connid}:${sesskey}`,
